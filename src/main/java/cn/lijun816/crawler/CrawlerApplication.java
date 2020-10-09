@@ -1,13 +1,20 @@
 package cn.lijun816.crawler;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.processor.example.GithubRepoPageProcessor;
 
 @SpringBootApplication
-public class CrawlerApplication {
+public class CrawlerApplication implements CommandLineRunner {
 
     public static void main(String[] args) {
         SpringApplication.run(CrawlerApplication.class, args);
     }
 
+    @Override
+    public void run(String... args) throws Exception {
+        Spider.create(new GithubRepoPageProcessor()).addUrl("https://github.com/code4craft").thread(5).run();
+    }
 }
