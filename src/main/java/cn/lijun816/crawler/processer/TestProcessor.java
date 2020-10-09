@@ -37,6 +37,6 @@ public class TestProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        Spider.create(new GithubRepoPageProcessor()).addUrl("https://github.com/code4craft").thread(5).run();
+        Spider.create(new GithubRepoPageProcessor()).addUrl("https://www.baidu.com").thread(5).run();
     }
 }
