@@ -1,34 +1,38 @@
 package cn.lijun816.crawler.processer;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.pipeline.JsonFilePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.processor.example.GithubRepoPageProcessor;
+import us.codecraft.webmagic.processor.example.ZhihuPageProcessor;
+import us.codecraft.webmagic.selector.Html;
+import us.codecraft.webmagic.selector.Selectable;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TestProcessor
  *
  * @author lijun 2020/10/9
  */
-@Data
+@Slf4j
 public class TestProcessor implements PageProcessor {
 
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(100);
+    private static final Site site = Site.me().setRetryTimes(3).setTimeOut(10000).setSleepTime(1000);
 
     @Override
     public void process(Page page) {
-        page.addTargetRequests(page.getHtml().links().regex("(https://github\\.com/\\w+/\\w+)").all());
-        page.putField("author", page.getUrl().regex("https://github\\.com/(\\w+)/.*").toString());
-        page.putField("name", page.getHtml().xpath("//h1[@class='entry-title public']/strong/a/text()").toString());
-        if (page.getResultItems().get("name")==null){
-            //skip this page
-            page.setSkip(true);
-        }
-        page.putField("readme", page.getHtml().xpath("//div[@id='readme']/tidyText()"));
+        Html html = page.getHtml();
+        log.info("process::{}", html);
+        List<String> href = html.css("div.playlist ul li a", "href").all();
+        page.putField("href", href);
     }
 
     @Override
@@ -37,6 +41,28 @@ public class TestProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        Spider.create(new GithubRepoPageProcessor()).addUrl("https://www.baidu.com").thread(5).run();
+        Spider thread = Spider.create(new TestProcessor()).thread(1).addPipeline(new JsonFilePipeline("E:\\webmagic\\"));
+        ResultItems resultItems = thread.get("http://www.2uxs.com/youshengxiaoshuo/9808/");
+        if (resultItems == null) {
+            log.info("main:爬取完成没有任何元素");
+            return;
+        }
+        resultItems.get("href");
+        thread.close();
+    }
+
+    static class ContentProcessor implements PageProcessor {
+
+        private static final Site site = Site.me().setRetryTimes(3).setTimeOut(10000).setSleepTime(1000);
+
+        @Override
+        public void process(Page page) {
+
+        }
+
+        @Override
+        public Site getSite() {
+            return site;
+        }
     }
 }

@@ -16,6 +16,5 @@ public class CrawlerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Spider.create(new GithubRepoPageProcessor()).addUrl("http://www.baidu.com").thread(5).run();
     }
 }
