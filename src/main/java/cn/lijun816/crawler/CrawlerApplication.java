@@ -1,13 +1,13 @@
 package cn.lijun816.crawler;
 
+import cn.lijun816.crawler.processer.MainPageProcessor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.processor.example.GithubRepoPageProcessor;
+import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+@SpringBootApplication
+@ComponentScan({"cn.lijun816.**", "cn.lijun816.*"})
 public class CrawlerApplication implements CommandLineRunner {
 
     public static void main(String[] args) {
@@ -16,5 +16,6 @@ public class CrawlerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        new MainPageProcessor().crawler();
     }
 }
