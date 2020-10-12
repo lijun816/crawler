@@ -15,7 +15,7 @@ import java.io.Serializable;
 @RestController
 public class OpenRestController {
 
-    @GetMapping("start")
+    @GetMapping("/start")
     public String start() throws IOException {
         new MainPageProcessor().crawler();
         return "success";
