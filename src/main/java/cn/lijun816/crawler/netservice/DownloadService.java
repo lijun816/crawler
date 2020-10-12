@@ -48,6 +48,7 @@ public class DownloadService implements Serializable {
             CrawlerContent content = crawlerContentRepository.findTop1ByUrl(url);
             if (content == null) {
                 content = new CrawlerContent();
+                content.setUrl(url);
             }
             content.setHasDownload(true).setText(document.html()).setType("html");
             crawlerContentRepository.save(content);
