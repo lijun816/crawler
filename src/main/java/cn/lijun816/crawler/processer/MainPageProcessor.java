@@ -31,7 +31,15 @@ public class MainPageProcessor {
         Elements tagAs = document.select("div.playlist ul li a");
         for (Element li : tagAs) {
             String href = li.attr("href");
-            System.out.println(href);
+            twoLevelParser(href);
+            break;
+        }
+    }
+
+    private void twoLevelParser(String href) throws IOException {
+        Document document = downloadService.downloadHtml(href);
+        if (document != null) {
+            System.out.println(document.html());
         }
     }
 }
