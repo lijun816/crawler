@@ -39,7 +39,8 @@ public class MainPageProcessor {
 
     public void crawler() throws IOException {
         // 下载首页
-        Document document = downloadService.downloadHtml(new DownloadReq(YANG_PAI_URL));
+        DownloadReq req = new DownloadReq(YANG_PAI_URL).setUseCache(false);
+        Document document = downloadService.downloadHtml(req);
         if (document == null) {
             log.warn("crawler::没有下载到主页");
             return;
@@ -49,7 +50,7 @@ public class MainPageProcessor {
         for (Element li : tagAs) {
             String title = li.text();
             String href = mainPageUrl.getProtocol() + "://" + mainPageUrl.getHost() + li.attr("href");
-            twoLevelParser(title, new DownloadReq(href));
+            twoLevelParser(title, new DownloadReq(href).setUseCache(false));
             if (i++ > 50) {
                 break;
             }
@@ -104,8 +105,15 @@ public class MainPageProcessor {
                     Pattern compile = Pattern.compile("(?:^|\\n)" + varUrl + " = '(.*)';");
                     Matcher matcher2 = compile.matcher(content);
                     if (matcher2.find()) {
-                        String varPath = matcher2.group(1);
-                        group1 = group1.replace("'", "").replace("+", "").replace(varUrl, varPath);
+                        String txt = matcher2.group(1);
+                        int endIndex = txt.indexOf("'+");
+                        if (endIndex > -1) {
+                            txt = txt.substring(0, endIndex);
+                            txt += ".mp3";
+                        }
+                        System.out.println(txt);
+                        group1 = group1.replace("'", "")
+                                .replace("+", "").replace(varUrl, txt);
                     }
                 }
             }

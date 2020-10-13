@@ -14,6 +14,17 @@ class CrawlerApplicationTests {
     private final static Pattern compile1 = Pattern.compile("'\\+(.*)\\+'.*");
 
     public static void main(String[] args) {
+        String txt = "https://mp3.dongporen.top/19fd0576dcab387bdc32d8e46148b6c8/5f85cea7/youshengshu/yangpaiqitan/001'+buONzIqChSbc+'";
+        int endIndex = txt.indexOf("'+");
+        if (endIndex > -1) {
+            txt = txt.substring(0, endIndex);
+            txt += ".mp3";
+        }
+        System.out.println(txt);
+
+    }
+
+    public static void main1(String[] args) {
         String content = txt;
         Matcher matcher = compile.matcher(content);
         if (matcher.find()) {
@@ -39,6 +50,7 @@ class CrawlerApplicationTests {
             }
         }
     }
+
 
     private static String txt = "<script>\n" +
             " var AajZB4qGUPKKH19K;\n" +
