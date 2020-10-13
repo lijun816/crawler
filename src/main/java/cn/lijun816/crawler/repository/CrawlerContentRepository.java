@@ -16,4 +16,6 @@ import java.io.Serializable;
 public interface CrawlerContentRepository extends JpaRepository<CrawlerContent, Integer> {
 
     CrawlerContent findTop1ByUrl(String url);
+
+    CrawlerContent findTop1ByTitle(String title);
 }

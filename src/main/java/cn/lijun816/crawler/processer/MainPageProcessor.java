@@ -1,15 +1,19 @@
 package cn.lijun816.crawler.processer;
 
 import cn.lijun816.common.util.SpringBeanUtil;
+import cn.lijun816.crawler.dto.DownloadReq;
 import cn.lijun816.crawler.netservice.DownloadService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * TestProcessor
@@ -35,21 +39,25 @@ public class MainPageProcessor {
 
     public void crawler() throws IOException {
         // 下载首页
-        Document document = downloadService.downloadHtml(YANG_PAI_URL);
+        Document document = downloadService.downloadHtml(new DownloadReq(YANG_PAI_URL));
         if (document == null) {
             log.warn("crawler::没有下载到主页");
             return;
         }
         Elements tagAs = document.select("div.playlist ul li a");
+        int i = 0;
         for (Element li : tagAs) {
+            String title = li.text();
             String href = mainPageUrl.getProtocol() + "://" + mainPageUrl.getHost() + li.attr("href");
-            twoLevelParser(href);
-            break;
+            twoLevelParser(title, new DownloadReq(href));
+            if (i++ > 50) {
+                break;
+            }
         }
     }
 
-    private void twoLevelParser(String href) throws IOException {
-        Document document = downloadService.downloadHtml(href);
+    private void twoLevelParser(String title, DownloadReq req) throws IOException {
+        Document document = downloadService.downloadHtml(req);
         if (document == null) {
             return;
         }
@@ -59,20 +67,56 @@ public class MainPageProcessor {
         }
         String src = select.first().attr("src");
         src = mainPageUrl.getProtocol() + "://" + mainPageUrl.getHost() + src;
-        threeLevelParser(src);
+        DownloadReq downloadReq = new DownloadReq(src)
+                .putHeader("Referer", req.getUrl());
+        threeLevelParser(title, downloadReq);
     }
 
-    private void threeLevelParser(String href) throws IOException {
-        Document document = downloadService.downloadHtml(href);
+    private void threeLevelParser(String title, DownloadReq downloadReq) throws IOException {
+        downloadReq.setUseCache(false);
+        Document document = downloadService.downloadHtml(downloadReq);
         if (document == null) {
             return;
         }
-        Elements select = document.select("iframe#play");
-        if (select.first() == null) {
+        String mp3 = parseUrl(document.html());
+        if (mp3 == null) {
+            log.warn("threeLevelParser:没有解析到路径:{}", downloadReq.getUrl());
             return;
         }
-        String src = select.first().attr("src");
-        src = mainPageUrl.getProtocol() + "://" + mainPageUrl.getHost() + src;
-        threeLevelParser(src);
+        DownloadReq req = new DownloadReq(mp3)
+                .setTitle(title)
+                .putHeader("authority", "mp3.dongporen.top")
+                .putHeader("Referer", "http://www.2uxs.com/");
+        downloadService.downloadMedia(req);
+    }
+
+    private final static Pattern compile = Pattern.compile("mp3:'(.*)'");
+    private final static Pattern compile1 = Pattern.compile("'\\+(.*)\\+'.*");
+
+    public String parseUrl(String content) {
+        Matcher matcher = compile.matcher(content);
+        if (matcher.find()) {
+            String group1 = matcher.group(1);
+            if (group1.contains("'+") && group1.contains("+'")) {
+                Matcher matcher1 = compile1.matcher(group1);
+                if (matcher1.find()) {
+                    String varUrl = matcher1.group(1);
+                    Pattern compile = Pattern.compile("(?:^|\\n)" + varUrl + " = '(.*)';");
+                    Matcher matcher2 = compile.matcher(content);
+                    if (matcher2.find()) {
+                        String varPath = matcher2.group(1);
+                        group1 = group1.replace("'", "").replace("+", "").replace(varUrl, varPath);
+                    }
+                }
+            }
+            String realMp3Url = "";
+            if (group1.startsWith("http")) {
+                realMp3Url = group1;
+            } else {
+                realMp3Url = "http://www.2uxs.com" + group1;
+            }
+            return realMp3Url;
+        }
+        return null;
     }
 }

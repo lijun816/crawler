@@ -20,6 +20,8 @@ public class CrawlerContent implements Serializable {
 
     private String url;
 
+    private String title;
+
     @Column(columnDefinition = "CLOB")
     private String text;
 
