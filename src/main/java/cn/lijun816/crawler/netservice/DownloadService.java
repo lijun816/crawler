@@ -83,14 +83,21 @@ public class DownloadService implements Serializable {
         if (useCache) {
             CrawlerContent content = crawlerContentRepository.findTop1ByUrl(url);
             if (content != null && Boolean.TRUE.equals(content.getHasDownload())) {
-                log.info("downloadMedia:找到缓存不再下载:{}", url);
-                return;
+                String filePath = content.getFilePath();
+                if (Files.exists(Paths.get(filePath))) {
+                    log.info("downloadMedia:找到缓存不再下载:{}", url);
+                    return;
+                }
+
             }
             if (StringUtils.hasText(title)) {
                 content = crawlerContentRepository.findTop1ByTitle(title);
                 if (content != null && Boolean.TRUE.equals(content.getHasDownload())) {
-                    log.info("downloadMedia:找到缓存不再下载:{}", url);
-                    return;
+                    String filePath = content.getFilePath();
+                    if (Files.exists(Paths.get(filePath))) {
+                        log.info("downloadMedia:找到缓存不再下载:{}", url);
+                        return;
+                    }
                 }
             }
         }
@@ -115,7 +122,7 @@ public class DownloadService implements Serializable {
             FileOutputStream to = new FileOutputStream(file);
             ByteStreams.copy(bufferedInputStream, to);
             to.close();
-
+            log.info("downloadMedia:下载完成:{}", url);
             CrawlerContent content = crawlerContentRepository.findTop1ByUrl(url);
             if (content == null) {
                 if (StringUtils.hasText(title)) {
