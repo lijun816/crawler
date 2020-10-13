@@ -39,7 +39,7 @@ public class MainPageProcessor {
 
     public void crawler() throws IOException {
         // 下载首页
-        DownloadReq req = new DownloadReq(YANG_PAI_URL).setUseCache(false);
+        DownloadReq req = new DownloadReq(YANG_PAI_URL).setUseCache(true);
         Document document = downloadService.downloadHtml(req);
         if (document == null) {
             log.warn("crawler::没有下载到主页");
@@ -48,12 +48,13 @@ public class MainPageProcessor {
         Elements tagAs = document.select("div.playlist ul li a");
         int i = 0;
         for (Element li : tagAs) {
+            if (i++ < 50) {
+                continue;
+            }
             String title = li.text();
             String href = mainPageUrl.getProtocol() + "://" + mainPageUrl.getHost() + li.attr("href");
-            twoLevelParser(title, new DownloadReq(href).setUseCache(false));
-            if (i++ > 50) {
-                break;
-            }
+            twoLevelParser(title, new DownloadReq(href).setUseCache(true));
+
         }
     }
 
